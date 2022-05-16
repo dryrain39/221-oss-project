@@ -1,7 +1,9 @@
 from typing import List
+import csv
 
 
 class DGFoodConvert:
+
     dg_food_fetch: List[dict]
 
     def __init__(self, dg_food_fetch):
@@ -9,6 +11,8 @@ class DGFoodConvert:
 
     def convert_to_csv(self) -> List[List[str]]:
         dg_food_fetch: List[dict] = self.dg_food_fetch
+        for i in range(0, len(dg_food_fetch)):
+                print(dg_food_fetch[i]) # 한줄 출력
         ...
 
     ...
@@ -35,7 +39,7 @@ if __name__ == '__main__':
             "FD_CS": "중화요리",
         }
     ]
-
+    
     print("return: ", DGFoodConvert(_example_fetch).convert_to_csv())
     # 예상 출력:
     # [
