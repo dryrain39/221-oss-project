@@ -1,9 +1,7 @@
 from typing import List
 import csv
 
-
 class DGFoodConvert:
-
     dg_food_fetch: List[dict]
 
     def __init__(self, dg_food_fetch):
@@ -11,11 +9,12 @@ class DGFoodConvert:
 
     def convert_to_csv(self) -> List[List[str]]:
         dg_food_fetch: List[dict] = self.dg_food_fetch
+        chart=[[],[]]
         for i in range(0, len(dg_food_fetch)):
             for a in dg_food_fetch[i].keys(): # key리스트를 만들어 a에 옮긴 후
-               print(a + " : " + dg_food_fetch[i][a]) # 각 키에 맞는 값들을 출력
-            print("\n")
-        ...
+                chart[i].append(dg_food_fetch[i][a].split()) # fetch 파일에서 키값을 제외하고 저장
+        return chart
+        ... 
 
     ...
 
@@ -26,7 +25,6 @@ if __name__ == '__main__':
 
     # 입력값: 없음
     # 출력값: 배열 형태의 값
-
     _example_fetch = [
         {
             "cnt": "1",
@@ -41,8 +39,12 @@ if __name__ == '__main__':
             "FD_CS": "중화요리",
         }
     ]
-    
-    print("return: ", DGFoodConvert(_example_fetch).convert_to_csv())
+
+    dgFood = [[], []]
+    dgFood = DGFoodConvert(_example_fetch).convert_to_csv()
+
+    for i in range(0, len(dgFood)):
+        print("return: ", dgFood[i])
     # 예상 출력:
     # [
     #   [
