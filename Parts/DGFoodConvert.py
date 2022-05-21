@@ -7,18 +7,20 @@ class DGFoodConvert:
     def __init__(self, dg_food_fetch):
         self.dg_food_fetch = dg_food_fetch
 
-    def convert_to_csv(self, x) -> List[List[str]]:
+    def convert_to_csv(self, x, key =  None) -> List[List[str]]:
         dg_food_fetch: List[dict] = self.dg_food_fetch
         dgfoodcnt = x
-        chart=[[] for x in range(dgfoodcnt)]
-        for i in range(0, len(dg_food_fetch)):
-            chart[i].append(list(dg_food_fetch[i].values()))
-         #   for a in dg_food_fetch[i].keys(): # key리스트를 만들어 a에 옮긴 후
-         #       chart[i].append(dg_food_fetch[i][a].split()) # fetch 파일에서 키값을 제외하고 저장
-        return chart
-        ... 
+        chart=[[] for k in range(dgfoodcnt)]
 
-    ...
+        if key == None:
+            for i in range(0, len(dg_food_fetch)):
+                chart[i].append(dg_food_fetch[i].values())
+            return chart
+        else:
+            for i in range(0, len(dg_food_fetch)):
+                chart[i].append(dg_food_fetch[i][key])
+            return chart
+
 
 
 if __name__ == '__main__':
@@ -69,9 +71,10 @@ if __name__ == '__main__':
 
     cnt = len(_example_fetch)
 
-    dgFood = [[] for x in range(cnt)]
+    dgFood = [[] for k in range(cnt)]
 
-    dgFood = DGFoodConvert(_example_fetch).convert_to_csv(cnt)
+    # dgFood = DGFoodConvert(_example_fetch).convert_to_csv(cnt) # 전체 값 가져오기
+    dgFood = DGFoodConvert(_example_fetch).convert_to_csv(cnt, "FD_CS") # 해당 키 값 가져오기
 
     for i in range(0, len(dgFood)):
         print("return: ", dgFood[i])
