@@ -12,7 +12,7 @@ class DGFoodConvert:
         dgfoodcnt = x
         chart=[[] for x in range(dgfoodcnt)]
         for i in range(0, len(dg_food_fetch)):
-            chart[i].append(dg_food_fetch[i].values())
+            chart[i].append(list(dg_food_fetch[i].values()))
          #   for a in dg_food_fetch[i].keys(): # key리스트를 만들어 a에 옮긴 후
          #       chart[i].append(dg_food_fetch[i][a].split()) # fetch 파일에서 키값을 제외하고 저장
         return chart
