@@ -1,8 +1,16 @@
+import json
 import logging
 from typing import List
+
+from diskcache import FanoutCache
+
 from Parts.DGFoodConvert import DGFoodConvert
-from Parts.DGFoodFetch import DGFoodFetch
+# from Parts.DGFoodFetch import DGFoodFetch
+from Parts.DGFF import DGFoodFetch
 from Parts.FileCache import FileCache
+from Parts.NaverAddressToCoord import get_lat_lng_from_address
+
+cache = FanoutCache(directory="./.cache/memoize/", shards=4)
 
 
 class DGFood:
@@ -30,7 +38,7 @@ class DGFood:
             # 입력받은 구가 올바르면 반환
             return [gu]
 
-    def _fetch(self, matjip_gu: str):
+    def fetch(self, matjip_gu: str):
         gu_name = self.gu_name_validation(matjip_gu)
         fetch = DGFoodFetch()
 
@@ -43,12 +51,32 @@ class DGFood:
                 self.cache.rm(key=gu)
                 continue
 
+            # 좌표값 추가
+            def add_lat_lng(x):
+                addr = x["GNG_CS"]
+                success, lat, lng = get_lat_lng_from_address(address=addr)
+
+                if success:
+                    x["coord_available"] = True
+                    x["lat"] = lat
+                    x["lng"] = lng
+                else:
+                    x["coord_available"] = False
+
+                return x
+
+            matjip_data = list(map(add_lat_lng, matjip_data))
+
             result_matjip_list.extend(matjip_data)
 
         return result_matjip_list
 
+    @cache.memoize(tag="DGFood_Fetch", expire=604800)
+    def fetch_cache(self, matjip_gu: str):
+        return self.fetch(matjip_gu=matjip_gu)
+
     def get_csv(self, matjip_gu: str):
-        fetch_result = self._fetch(matjip_gu=matjip_gu)
+        fetch_result = self.fetch_cache(matjip_gu=matjip_gu)
         convert = DGFoodConvert(dg_food_fetch=fetch_result)
         return convert.convert_to_csv(x=len(fetch_result))
 
@@ -56,4 +84,4 @@ class DGFood:
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     d = DGFood()
-    print(d.get_csv("북구"))
+    print(json.dumps(d.fetch_cache("북구"), ensure_ascii=False))

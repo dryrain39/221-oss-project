@@ -7,7 +7,7 @@ class FileCache:
     cache: FanoutCache
 
     def __init__(self, name, namespace="", default_expire: int = 86400):
-        self.cache = FanoutCache(directory="./.cache/")
+        self.cache = FanoutCache(directory="./.cache/KVCache/")
         self.namespace = namespace
         self.key = name
         self.expire = default_expire
