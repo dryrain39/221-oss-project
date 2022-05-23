@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+    <!-- CSS only -->
+    <link href="//cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+    <!-- JavaScript Bundle with Popper -->
+    <script src="//cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+            crossorigin="anonymous"></script>
+
+    <script src="//code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
+
+    <script type="text/javascript"
+            src="//openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=g68894atqe"></script>
+    <style>
+
+        #map img {
+
+            max-width: none;
+
+            height: auto;
+
+            border: 0
+
+        }
+
+        #map {
+            height: 100%;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .selected {
+            border: 3px dashed #0FBA23 !important;
+            border-radius: var(--bs-border-radius) !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="row fixed-top" style="">
+    <div class="col-12" style="height: 330px;">
+        <div id="map" style="width:100%;"></div>
+    </div>
+    <div class="col-12 container" style="">
+        <div class="input-group mb-3">
+            <label class="input-group-text" for="gu">지역(구)</label>
+            <select class="form-select" id="gu" onchange="search_q();">
+                <option value="all">전체</option>
+                <option value="중구">중구</option>
+                <option value="동구">동구</option>
+                <option value="서구">서구</option>
+                <option value="남구">남구</option>
+                <option value="북구">북구</option>
+                <option value="수성구">수성구</option>
+                <option value="달서구">달서구</option>
+                <option value="달성군">달성군</option>
+            </select>
+            <label class="input-group-text" for="keyword">단어 검색:</label>
+            <input type="text" class="form-control" placeholder="공백(스페이스)로 단어 구분하여 검색"
+                   aria-label="search keyword" aria-describedby="button-addon2" id="keyword">
+            <button class="btn btn-success" type="button" id="button-addon2" onclick="search_q();">검색</button>
+            <button class="btn btn-secondary" type="button" id="button-addon3" onclick="$('#keyword').val('');search_q()">초기화
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="margin-top: 400px">
+
+
+    <div class="row">
+
+
+        <!--        <div class="col-12" style="">-->
+        <!--            <button onclick="f1(0);">f1</button>-->
+        <!--            <button onclick="f1(1);">f2</button>-->
+        <!--        </div>-->
+
+
+    </div>
+
+    <div class="row" id="matjip_list" style="justify-content: flex-start">
+    </div>
+</div>
+<script>
+    let test_data = []
+</script>
+<script>
+    var mapOptions = {
+        center: new naver.maps.LatLng(35.8713900, 128.6017630),
+        zoom: 16
+    };
+
+    var map = new naver.maps.Map('map', mapOptions);
+    var infowindow = new naver.maps.InfoWindow();
+
+
+</script>
+
+<script>
+
+    function move_and_display(lat, lng, text) {
+        lat = lat * 1;
+        lng = lng * 1;
+        var lc = new naver.maps.LatLng(lat, lng)
+        map.setZoom(16, false)
+
+        infowindow.setContent('<div style="padding:20px;">' + text + '</div>');
+        infowindow.open(map, lc);
+
+        var lc_vw = new naver.maps.LatLng(lat + 0.0015, lng)
+        map.panTo(lc_vw);
+        console.log('Coordinates: ' + lc.toString());
+    }
+
+    function f1(idx) {
+        move_and_display(test_data[idx]["lat"], test_data[idx]["lng"], test_data[idx]["BZ_NM"])
+    }
+
+    let matjip_list = $("#matjip_list")
+    let marker_list = [];  // marker 재사용을 위한 리스트
+    let marker_info_window = new naver.maps.InfoWindow({
+        content: '<div style="width:150px;text-align:center;padding:10px;">The Letter is <b>b</b>.</div>'
+    });
+
+    function load_data() {
+        matjip_list.empty();
+        marker_list.forEach(function (e) {
+            e.setVisible(false);
+        })
+
+        let data = test_data;
+        let list_data = data.slice(0, 100);
+
+        let marker_idx = 0;
+        list_data.forEach(function (e) {
+            let lat = e["lat"] * 1;
+            let lng = e["lng"] * 1;
+
+            let tag = ""
+
+            function add_tag(t, color) {
+                tag += `<span class="badge text-bg-${color}">${t}</span>&nbsp;`
+            }
+
+            // 카테고리
+            add_tag(e["FD_CS"], "secondary")
+
+            // 주차가능
+            if (!(e["PKPL"].indexOf("없음") !== -1 || e["PKPL"].indexOf("주차불가") !== -1)) {
+                add_tag(`주차 ${e["PKPL"]}`, "success")
+            }
+
+            // 예약가능
+            if (e["BKN_YN"].indexOf("불가능") === -1) {
+                add_tag("예약", "primary")
+            }
+
+            // 24시간
+            if (e["MBZ_HR"].indexOf("24시간") !== -1) {
+                add_tag("24시간", "danger")
+            }
+
+            const show_menu_cnt = 3
+            let menu = e["MNU"].split("<br />")
+            let menu_cut = menu.slice(0, show_menu_cnt)
+            let menu_html = menu_cut.join("<br>")
+
+            if (menu.length - show_menu_cnt > 0) {
+                menu_html += `<br>외 ${menu.length - show_menu_cnt}건`
+            }
+
+            let real_address = e["GNG_CS"];
+            let address = e["GNG_CS"].replaceAll("대구광역시", "").trim();
+            let address_selector = address.replaceAll(" ", "_").replaceAll(/[()]/ig, "");
+
+
+            matjip_list.append(`
+            <div class="col mb-4 " style="cursor: pointer;" onclick="move_map_detail(${lat}, ${lng}, '${address_selector}', '${e["BZ_NM"]}')" >
+                <div class="card shadow bg-body rounded matjip" style="width: 19rem; border: 0" id="${address_selector}">
+                    <div class="card-body">
+                        <h5 class="card-title mb-0">${e["BZ_NM"]}</h5>
+                        <div class="mb-1">
+                            ${tag}
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">${address}</h6>
+                        <p class="card-text" style="margin-bottom: 0.3em">
+                            ${menu_html}
+                        </p>
+                        <a href="https://map.naver.com/v5/search/${real_address}" target="_blank" class="card-link">[지도 길찾기]</a>
+                    </div>
+                </div>
+            </div>
+            `)
+
+            // marker 추가 부분
+            // marker_idx 가 마커 배열 길이보다 크면 새 마커를 추가
+            let marker_title = `[${e["FD_CS"]}]${e["BZ_NM"]}`
+            if (marker_idx >= marker_list.length) {
+                marker_list.push(
+                    new naver.maps.Marker({
+                        position: new naver.maps.LatLng(e["lat"], e["lng"]),
+                        map: map,
+                        title: marker_title,
+                    })
+                )
+            } else {
+                // 기존 마커 재사용
+                let marker = marker_list[marker_idx];
+                marker.setPosition(new naver.maps.LatLng(e["lat"], e["lng"]))
+                marker.setTitle(marker_title)
+                marker.setVisible(true)
+            }
+
+            // 이벤트 리스너 등록
+            if (marker_list[marker_idx].__listener) {
+                naver.maps.Event.clearListeners(marker_list[marker_idx], 'mouseover')
+                naver.maps.Event.clearListeners(marker_list[marker_idx], 'click')
+            }
+
+            // noinspection JSVoidFunctionReturnValueUsed
+            naver.maps.Event.addListener(marker_list[marker_idx], 'mouseover', function (x) {
+                console.log(x)
+                let position = new naver.maps.LatLng(lat + 0.0001, lng);
+                marker_info_window.close()
+                document.getElementById(address_selector).scrollIntoView()
+                window.scrollBy(0, -450)
+                $(".matjip").removeClass("selected");
+                $(`#${address_selector}`).addClass("selected");
+            })
+
+            naver.maps.Event.addListener(marker_list[marker_idx], 'click', function (x) {
+
+            })
+
+            marker_list[marker_idx].__listener = true;
+
+            marker_idx += 1;
+        })
+
+        if (data.length - list_data.length > 0) {
+            matjip_list.append(`
+            <div class="col-12 mb-2" style="margin-left: 0; margin-right: 0;">
+                <div class="card" style="">
+                    <div class="card-body" style="text-align: center">
+                        <div style="font-size: 1.5em;">결과가 더 있지만 생략되었습니다.</div>
+                        <div style="font-size: 1.5em;">단어 검색을 이용해 보세요.</div>
+                    </div>
+                </div>
+            </div>
+            `)
+        }
+
+        if (data.length === 0) {
+            matjip_list.append(`
+            <div class="col-12 mb-2" style="margin-left: 0; margin-right: 0;">
+                <div class="card" style="">
+                    <div class="card-body" style="text-align: center">
+                        <div style="font-size: 1.5em;">검색 결과가 없습니다.</div>
+                        <div style="font-size: 1.5em;">조건을 변경하여 검색해 보세요.</div>
+                    </div>
+                </div>
+            </div>
+            `)
+        }
+
+        window.scrollTo(0, 0)
+    }
+
+    function move_map_detail(lat, lng, address, name) {
+        let position = new naver.maps.LatLng(lat, lng)
+        map.setZoom(16, false);
+        map.panTo(position);
+        $(".matjip").removeClass("selected");
+        $(`#${address}`).addClass("selected");
+        marker_info_window.open(map, position)
+        marker_info_window.setContent(`
+                <div style="width:200px;text-align:center;padding:5px;">
+                    ${name}
+                </div>
+                `)
+    }
+
+
+    function search_q() {
+        $.ajax({
+            url: '/search/',
+            data: {
+                "gu": $("#gu").val(),
+                "keyword": $("#keyword").val()
+            },
+            success: function (data) {
+                console.log(data)
+                test_data = data
+                load_data()
+            }
+        })
+    }
+
+    const delay = 500
+    let timer
+    document.getElementById("keyword").addEventListener('input', code => {
+        clearTimeout(timer);
+        timer = setTimeout(x => {
+            search_q();
+        }, delay, code)
+    })
+
+    search_q()
+
+</script>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+</body>
+</html>
