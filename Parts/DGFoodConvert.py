@@ -1,7 +1,7 @@
 import json
 import copy
 from typing import List
-
+import csv
 
 class DGFoodConvert:
     dg_food_fetch: List[dict]
@@ -9,19 +9,19 @@ class DGFoodConvert:
     def __init__(self, dg_food_fetch):
         self.dg_food_fetch = dg_food_fetch
 
-    def convert_to_csv(self, x, key=None) -> List[List[str]]:
-        dg_food_fetch: List[dict] = self.dg_food_fetch
-        dgfoodcnt = x
-        chart = [[] for k in range(dgfoodcnt)]
+   def convert_to_csv(self, x, key =  None) -> List[List[str]]:
+      dg_food_fetch: List[dict] = self.dg_food_fetch
+      dgfoodcnt = x
+      chart=[[] for k in range(dgfoodcnt)]
 
-        if key == None:
-            for i in range(0, len(dg_food_fetch)):
-                chart[i].append(dg_food_fetch[i].values())
-            return chart
-        else:
-            for i in range(0, len(dg_food_fetch)):
-                chart[i].append(dg_food_fetch[i][key])
-            return chart
+      if key == None:
+          for i in range(0, len(dg_food_fetch)):
+              chart[i].append(dg_food_fetch[i].values())
+          return chart
+      else:
+          for i in range(0, len(dg_food_fetch)):
+              chart[i].append(dg_food_fetch[i][key])
+          return chart
 
     def convert_to_db_csv(self, gu_info, cnt_start_from=0):
         dg_food_fetch: List[dict] = self.dg_food_fetch
@@ -63,7 +63,7 @@ class DGFoodConvert:
         filter_result = list(filter(filter_loc, dg_food_fetch))
         convert_result = list(map(convert, filter_result))
         return convert_result
-
+      
 
 if __name__ == '__main__':
     # https://www.daegufood.go.kr/kor/api/tasty.html?mode=json&addr={구이름}
@@ -71,7 +71,6 @@ if __name__ == '__main__':
 
     # 입력값: 없음
     # 출력값: 배열 형태의 값
-
     _example_fetch = [
         {
             "cnt": "1",
